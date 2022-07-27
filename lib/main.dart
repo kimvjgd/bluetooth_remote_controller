@@ -35,6 +35,8 @@ class MyApp extends StatelessWidget {
             );
           } else {
             return Home();
+            // return LiveChartWidget();
+
           }
         },
         // child: MyHomePage(title: 'Flutter Demo Home Page'),
@@ -60,7 +62,6 @@ class Home extends StatelessWidget {
                 MaterialPageRoute(
                   builder: (context) {
                     return ChatPage(server: device);
-                    // return LiveChartWidget();
                   },
                 ),
               );
