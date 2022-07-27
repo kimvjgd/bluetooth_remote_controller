@@ -1,5 +1,6 @@
 import 'package:dongpakka_bluetooth/connection.dart';
 import 'package:dongpakka_bluetooth/chat_page.dart';
+import 'package:dongpakka_bluetooth/live_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
 
@@ -12,14 +13,15 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Flutter Car Controller',
       theme: ThemeData.dark(),
       home: FutureBuilder(
         future: FlutterBluetoothSerial.instance.requestEnable(),
         builder: (context, future) {
           if (future.connectionState == ConnectionState.waiting) {
-            return Scaffold(
-              body: Container(
+            return const Scaffold(
+              body: SizedBox(
                 height: double.infinity,
                 child: Center(
                   child: Icon(
@@ -48,7 +50,7 @@ class Home extends StatelessWidget {
         child: Scaffold(
           appBar: AppBar(
             centerTitle: true,
-            title: Text('Connection'),
+            title: const Text('Connection'),
           ),
           body: SelectBondedDevicePage(
             onChatPage: (device1) {
@@ -57,7 +59,8 @@ class Home extends StatelessWidget {
                 context,
                 MaterialPageRoute(
                   builder: (context) {
-                    return ChatPage(server: device);
+                    // return ChatPage(server: device);
+                    return LiveChartWidget();
                   },
                 ),
               );

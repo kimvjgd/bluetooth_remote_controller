@@ -14,8 +14,10 @@ dependencies:
 
 
   cupertino_icons: ^1.0.2
+  get: ^4.6.5
   flutter_bluetooth_serial: ^0.4.0
   control_button: ^0.0.2
+  syncfusion_flutter_charts: ^20.2.40
 
 dev_dependencies:
   flutter_test:

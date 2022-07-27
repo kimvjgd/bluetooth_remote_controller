@@ -1,19 +1,19 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
-import 'package:flutter/cupertino.dart';
+import 'package:dongpakka_bluetooth/live_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
-import 'package:control_button/control_button.dart';
+import 'package:get/get.dart';
 
 
 class ChatPage extends StatefulWidget {
   final BluetoothDevice server;
 
-  ChatPage({this.server});
+  const ChatPage({this.server});
 
   @override
-  _ChatPage createState() => new _ChatPage();
+  _ChatPage createState() => _ChatPage();
 }
 
 class _Message {
@@ -24,15 +24,15 @@ class _Message {
 }
 
 class _ChatPage extends State<ChatPage> {
-  static final clientID = 0;
+  static const clientID = 0;
   BluetoothConnection connection;
 
   List<_Message> messages = [];
   String _messageBuffer = '';
 
   final TextEditingController textEditingController =
-      new TextEditingController();
-  final ScrollController listScrollController = new ScrollController();
+      TextEditingController();
+  final ScrollController listScrollController = ScrollController();
 
   bool isConnecting = true;
   bool get isConnected => connection != null && connection.isConnected;
@@ -52,18 +52,12 @@ class _ChatPage extends State<ChatPage> {
       });
 
       connection.input.listen(_onDataReceived).onDone(() {
-        // Example: Detect which side closed the connection
-        // There should be `isDisconnecting` flag to show are we are (locally)
-        // in middle of disconnecting process, should be set before calling
-        // `dispose`, `finish` or `close`, which all causes to disconnect.
-        // If we except the disconnection, `onDone` should be fired as result.
-        // If we didn't except this (no flag set), it means closing by remote.
         if (isDisconnecting) {
           print('Disconnecting locally!');
         } else {
           print('Disconnected remotely!');
         }
-        if (this.mounted) {
+        if (mounted) {
           setState(() {});
         }
       });
@@ -85,7 +79,7 @@ class _ChatPage extends State<ChatPage> {
     super.dispose();
   }
 
-  double _value = 90.0;
+  final double _value = 90.0;
   @override
   Widget build(BuildContext context) {
     final List<Row> list = messages.map((_message) {
@@ -96,9 +90,9 @@ class _ChatPage extends State<ChatPage> {
                 (text) {
                   return text == '/shrug' ? '¯\\_(ツ)_/¯' : text;
                 }(_message.text.trim()),
-                style: TextStyle(color: Colors.white)),
-            padding: EdgeInsets.all(12.0),
-            margin: EdgeInsets.only(bottom: 8.0, left: 8.0, right: 8.0),
+                style: const TextStyle(color: Colors.white)),
+            padding: const EdgeInsets.all(12.0),
+            margin: const EdgeInsets.only(bottom: 8.0, left: 8.0, right: 8.0),
             width: 222.0,
             decoration: BoxDecoration(
                 color:
@@ -117,69 +111,71 @@ class _ChatPage extends State<ChatPage> {
           title: (isConnecting
               ? Text('Connecting chat to ' + widget.server.name + '...')
               : isConnected
-                  ? Text('Live chat with ' + widget.server.name)
+                  ? Text('Live chart with ' + widget.server.name)
                   : Text('Chat log with ' + widget.server.name))),
       body: SafeArea(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          // mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            SizedBox(height: 100,),
-            ControlButton(
-              sectionOffset: FixedAngles.Zero,
-              externalDiameter: 300,
-              internalDiameter: 120,
-              dividerColor: Colors.greenAccent,
-              elevation: 2,
-              externalColor: Colors.green[500],
-              internalColor: Colors.grey[300],
-              mainAction: () {
-                _sendMessage('S');
-              },
-              sections: [
-                    () => _sendMessage('o'),
-                    () => _sendMessage('F'),
-                    () => _sendMessage('L'),
-                    () => _sendMessage('L'),
-                    () => _sendMessage('c'),
-                    () => _sendMessage('R'),
-              ],
-            ),
+            Container(
+                width:Get.width, height:200,child: LiveChartWidget()),
+            const SizedBox(height: 100,),
+            // ControlButton(
+            //   sectionOffset: FixedAngles.Zero,
+            //   externalDiameter: 300,
+            //   internalDiameter: 120,
+            //   dividerColor: Colors.greenAccent,
+            //   elevation: 2,
+            //   externalColor: Colors.green[500],
+            //   internalColor: Colors.grey[300],
+            //   mainAction: () {
+            //     _sendMessage('S');
+            //   },
+            //   sections: [
+            //         () => _sendMessage('o'),
+            //         () => _sendMessage('F'),
+            //         () => _sendMessage('L'),
+            //         () => _sendMessage('L'),
+            //         () => _sendMessage('c'),
+            //         () => _sendMessage('R'),
+            //   ],
+            // ),
             Flexible(
               child: ListView(
                   padding: const EdgeInsets.all(12.0),
                   controller: listScrollController,
                   children: list),
             ),
-            Row(
-              children: <Widget>[
-                Flexible(
-                  child: Container(
-                    margin: const EdgeInsets.only(left: 16.0),
-                    child: TextField(
-                      style: const TextStyle(fontSize: 15.0),
-                      controller: textEditingController,
-                      decoration: InputDecoration.collapsed(
-                        hintText: isConnecting
-                            ? 'Wait until connected...'
-                            : isConnected
-                                ? 'Type your message...'
-                                : 'Chat got disconnected',
-                        hintStyle: const TextStyle(color: Colors.grey),
-                      ),
-                      enabled: isConnected,
-                    ),
-                  ),
-                ),
-                Container(
-                  margin: const EdgeInsets.all(8.0),
-                  child: IconButton(
-                      icon: const Icon(Icons.send),
-                      onPressed: isConnected
-                          ? () => _sendMessage(textEditingController.text)
-                          : null),
-                ),
-              ],
-            )
+            // Row(
+            //   children: <Widget>[
+            //     Flexible(
+            //       child: Container(
+            //         margin: const EdgeInsets.only(left: 16.0),
+            //         child: TextField(
+            //           style: const TextStyle(fontSize: 15.0),
+            //           controller: textEditingController,
+            //           decoration: InputDecoration.collapsed(
+            //             hintText: isConnecting
+            //                 ? 'Wait until connected...'
+            //                 : isConnected
+            //                     ? 'Type your message...'
+            //                     : 'Chat got disconnected',
+            //             hintStyle: const TextStyle(color: Colors.grey),
+            //           ),
+            //           enabled: isConnected,
+            //         ),
+            //       ),
+            //     ),
+            //     Container(
+            //       margin: const EdgeInsets.all(8.0),
+            //       child: IconButton(
+            //           icon: const Icon(Icons.send),
+            //           onPressed: isConnected
+            //               ? () => _sendMessage(textEditingController.text)
+            //               : null),
+            //     ),
+            //   ],
+            // )
           ],
         ),
       ),
@@ -189,11 +185,11 @@ class _ChatPage extends State<ChatPage> {
   void _onDataReceived(Uint8List data) {
     // Allocate buffer for parsed data
     int backspacesCounter = 0;
-    data.forEach((byte) {
+    for (var byte in data) {
       if (byte == 8 || byte == 127) {
         backspacesCounter++;
       }
-    });
+    }
     Uint8List buffer = Uint8List(data.length - backspacesCounter);
     int bufferIndex = buffer.length;
 
@@ -239,7 +235,7 @@ class _ChatPage extends State<ChatPage> {
     text = text.trim();
     textEditingController.clear();
 
-    if (text.length > 0) {
+    if (text.isNotEmpty) {
       try {
         connection.output.add(utf8.encode(text + "\r\n"));
         await connection.output.allSent;
@@ -248,10 +244,10 @@ class _ChatPage extends State<ChatPage> {
           messages.add(_Message(clientID, text));
         });
 
-        Future.delayed(Duration(milliseconds: 333)).then((_) {
+        Future.delayed(const Duration(milliseconds: 333)).then((_) {
           listScrollController.animateTo(
               listScrollController.position.maxScrollExtent,
-              duration: Duration(milliseconds: 333),
+              duration: const Duration(milliseconds: 333),
               curve: Curves.easeOut);
         });
       } catch (e) {
