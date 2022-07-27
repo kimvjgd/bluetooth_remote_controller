@@ -118,8 +118,8 @@ class _ChatPage extends State<ChatPage> {
           // mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-                width:Get.width, height:200,child: LiveChartWidget()),
-            const SizedBox(height: 100,),
+                width:Get.width, height:Get.height/3,child: LiveChartWidget()),
+            // const SizedBox(height: 100,),
             // ControlButton(
             //   sectionOffset: FixedAngles.Zero,
             //   externalDiameter: 300,
@@ -140,7 +140,7 @@ class _ChatPage extends State<ChatPage> {
             //         () => _sendMessage('R'),
             //   ],
             // ),
-            Flexible(
+            Expanded(
               child: ListView(
                   padding: const EdgeInsets.all(12.0),
                   controller: listScrollController,

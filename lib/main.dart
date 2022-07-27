@@ -59,8 +59,8 @@ class Home extends StatelessWidget {
                 context,
                 MaterialPageRoute(
                   builder: (context) {
-                    // return ChatPage(server: device);
-                    return LiveChartWidget();
+                    return ChatPage(server: device);
+                    // return LiveChartWidget();
                   },
                 ),
               );
