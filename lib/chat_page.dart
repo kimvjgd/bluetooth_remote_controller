@@ -5,6 +5,7 @@ import 'package:dongpakka_bluetooth/live_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
 import 'package:get/get.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'dart:math' as math;
 
 import 'package:syncfusion_flutter_charts/charts.dart';
@@ -25,6 +26,8 @@ class _Message {
   _Message(this.whom, this.text);
 }
 
+
+
 class _ChatPage extends State<ChatPage> {
   static const clientID = 0;
   BluetoothConnection connection;
@@ -40,10 +43,20 @@ class _ChatPage extends State<ChatPage> {
   bool get isConnected => connection != null && connection.isConnected;
 
   bool isDisconnecting = false;
+  bool newDatacome = false;
 
   @override
   void initState() {
     super.initState();
+
+    // listScrollController.addListener(() {
+    //   setState(() {
+    //     print('offset');
+    //     print(listScrollController.offset);
+    //     print('position');
+    //     print(listScrollController.position);
+    //   });
+    // });
 
     BluetoothConnection.toAddress(widget.server.address).then((_connection) {
       print('Connected to the device');
@@ -106,7 +119,7 @@ class _ChatPage extends State<ChatPage> {
             ? MainAxisAlignment.end
             : MainAxisAlignment.start,
       );
-    }).toList();
+    }).toList().reversed.toList();
 
     return Scaffold(
       appBar: AppBar(
@@ -121,27 +134,8 @@ class _ChatPage extends State<ChatPage> {
           children: [
             Container(
                 width:Get.width, height:Get.height/3,child: LiveChartWidget()),
-            // const SizedBox(height: 100,),
-            // ControlButton(
-            //   sectionOffset: FixedAngles.Zero,
-            //   externalDiameter: 300,
-            //   internalDiameter: 120,
-            //   dividerColor: Colors.greenAccent,
-            //   elevation: 2,
-            //   externalColor: Colors.green[500],
-            //   internalColor: Colors.grey[300],
-            //   mainAction: () {
-            //     _sendMessage('S');
-            //   },
-            //   sections: [
-            //         () => _sendMessage('o'),
-            //         () => _sendMessage('F'),
-            //         () => _sendMessage('L'),
-            //         () => _sendMessage('L'),
-            //         () => _sendMessage('c'),
-            //         () => _sendMessage('R'),
-            //   ],
-            // ),
+
+
             Expanded(
               child: ListView(
                   padding: const EdgeInsets.all(12.0),
@@ -233,31 +227,6 @@ class _ChatPage extends State<ChatPage> {
     }
   }
 
-  void _sendMessage(String text) async {
-    text = text.trim();
-    textEditingController.clear();
-
-    if (text.isNotEmpty) {
-      try {
-        connection.output.add(utf8.encode(text + "\r\n"));
-        await connection.output.allSent;
-
-        setState(() {
-          messages.add(_Message(clientID, text));
-        });
-
-        Future.delayed(const Duration(milliseconds: 333)).then((_) {
-          listScrollController.animateTo(
-              listScrollController.position.maxScrollExtent,
-              duration: const Duration(milliseconds: 333),
-              curve: Curves.easeOut);
-        });
-      } catch (e) {
-        // Ignore error, but notify state
-        setState(() {});
-      }
-    }
-  }
 }
 
 
@@ -277,6 +246,7 @@ class _LiveChartWidgetState extends State<LiveChartWidget> {
     super.initState();
     chartData = getChartData();
     Timer.periodic(const Duration(milliseconds: 300), updateDataSource);
+
   }
 
   List<LiveData> getChartData() {

@@ -1,17 +1,32 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:dongpakka_bluetooth/connection.dart';
 import 'package:dongpakka_bluetooth/chat_page.dart';
 import 'package:dongpakka_bluetooth/live_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 void main() {
   runApp(MyApp());
 }
+void permission() async {
+  Map<Permission, PermissionStatus> statuses = await [
+    Permission.bluetooth,
+    Permission.bluetoothConnect,
+    Permission.bluetoothScan,
+  ].request();
+
+}
 
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
+
   @override
   Widget build(BuildContext context) {
+
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Flutter Car Controller',
@@ -19,6 +34,8 @@ class MyApp extends StatelessWidget {
       home: FutureBuilder(
         future: FlutterBluetoothSerial.instance.requestEnable(),
         builder: (context, future) {
+          permission();
+
           if (future.connectionState == ConnectionState.waiting) {
             return const Scaffold(
               body: SizedBox(
