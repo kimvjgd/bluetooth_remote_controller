@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:dongpakka_bluetooth/live_chart.dart';
+import 'package:dongpakka_bluetooth/local_notification_service.dart';
+import 'package:extended_image/extended_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
 import 'package:get/get.dart';
@@ -18,95 +20,98 @@ class ChatPage extends StatefulWidget {
   _ChatPage createState() => _ChatPage();
 }
 
-
-
-
-
 class _ChatPage extends State<ChatPage> {
+  LocalNotificationService service;
+
   static const clientID = 0;
   BluetoothConnection connection;
+
+  bool alarm = true;
+  int testValue = 10000;
+
+  int neckAlarm = 260;
 
   List<LiveData> chartData = [];
   ChartSeriesController _chartSeriesController;
 
   // List<_Message> messages = [];
   String _messageBuffer = '';
+
   List<LiveData> getTestChartData() {
     return <LiveData>[
-      LiveData(0, 1),
-      LiveData(1, 1),
-      LiveData(2, 1),
-      LiveData(3, 1),
-      LiveData(4, 1),
-      LiveData(5, 1),
-      LiveData(6, 1),
-      LiveData(7, 1),
-      LiveData(8, 1),
-      LiveData(9, 1),
-      LiveData(10, 1),
-      LiveData(11, 1),
-      LiveData(12, 1),
-      LiveData(13, 1),
-      LiveData(14, 1),
-      LiveData(15, 1),
-      LiveData(16, 1),
-      LiveData(17, 1),
-      LiveData(18, 1),
-      LiveData(19, 1),
-      LiveData(20, 1),
-      LiveData(21, 1),
-      LiveData(22, 1),
-      LiveData(23, 1),
-      LiveData(24, 1),
-      LiveData(25, 1),
-      LiveData(26, 1),
-      LiveData(27, 1),
-      LiveData(28, 1),
-      LiveData(29, 1),
-      LiveData(30, 1),
-      LiveData(31, 1),
-      LiveData(32, 1),
-      LiveData(33, 1),
-      LiveData(34, 1),
-      LiveData(35, 1),
-      LiveData(36, 1),
-      LiveData(37, 1),
-      LiveData(38, 1),
-      LiveData(39, 1),
-      LiveData(40, 1),
-      LiveData(41, 1),
-      LiveData(42, 1),
-      LiveData(43, 1),
-      LiveData(44, 1),
-      LiveData(45, 1),
-      LiveData(46, 1),
-      LiveData(47, 1),
-      LiveData(48, 1),
-      LiveData(49, 1),
-      LiveData(50, 1),
-      LiveData(51, 1),
-      LiveData(52, 1),
-      LiveData(53, 1),
-      LiveData(54, 1),
-      LiveData(55, 1),
-      LiveData(56, 1),
-      LiveData(57, 1),
-      LiveData(58, 1),
-      LiveData(59, 1),
+      LiveData(0, 400),
+      LiveData(1, 400),
+      LiveData(2, 400),
+      LiveData(3, 400),
+      LiveData(4, 400),
+      LiveData(5, 400),
+      LiveData(6, 400),
+      LiveData(7, 400),
+      LiveData(8, 400),
+      LiveData(9, 400),
+      LiveData(10, 400),
+      LiveData(11, 400),
+      LiveData(12, 400),
+      LiveData(13, 400),
+      LiveData(14, 400),
+      LiveData(15, 400),
+      LiveData(16, 400),
+      LiveData(17, 400),
+      LiveData(18, 400),
+      LiveData(19, 400),
+      LiveData(20, 400),
+      LiveData(21, 400),
+      LiveData(22, 400),
+      LiveData(23, 400),
+      LiveData(24, 400),
+      LiveData(25, 400),
+      LiveData(26, 400),
+      LiveData(27, 400),
+      LiveData(28, 400),
+      LiveData(29, 400),
+      LiveData(30, 400),
+      LiveData(31, 400),
+      LiveData(32, 400),
+      LiveData(33, 400),
+      LiveData(34, 400),
+      LiveData(35, 400),
+      LiveData(36, 400),
+      LiveData(37, 400),
+      LiveData(38, 400),
+      LiveData(39, 400),
+      LiveData(40, 400),
+      LiveData(41, 400),
+      LiveData(42, 400),
+      LiveData(43, 400),
+      LiveData(44, 400),
+      LiveData(45, 400),
+      LiveData(46, 400),
+      LiveData(47, 400),
+      LiveData(48, 400),
+      LiveData(49, 400),
+      LiveData(50, 400),
+      LiveData(51, 400),
+      LiveData(52, 400),
+      LiveData(53, 400),
+      LiveData(54, 400),
+      LiveData(55, 400),
+      LiveData(56, 400),
+      LiveData(57, 400),
+      LiveData(58, 400),
+      LiveData(59, 400),
     ];
   }
 
   int time = 60;
 
-  final TextEditingController textEditingController =
-  TextEditingController();
+  final TextEditingController textEditingController = TextEditingController();
   final ScrollController listScrollController = ScrollController();
   bool isConnecting = true;
+
   bool get isConnected => connection != null && connection.isConnected;
   bool isDisconnecting = false;
   bool newDatacome = false;
   int timerCount = 60;
-
 
   updateDataSource(Timer timer) {
     chartData.add(LiveData(time++, (math.Random().nextInt(60))));
@@ -126,6 +131,11 @@ class _ChatPage extends State<ChatPage> {
   void initState() {
     super.initState();
 
+    service = LocalNotificationService();
+    service.initialize();
+    listenToNotification();
+
+
     chartData = getTestChartData();
     // Timer.periodic(const Duration(milliseconds: 800), updateDataSource);
     Timer.periodic(const Duration(seconds: 1), countTime);
@@ -137,8 +147,6 @@ class _ChatPage extends State<ChatPage> {
     //     print(listScrollController.position);
     //   });
     // });
-
-
 
     BluetoothConnection.toAddress(widget.server.address).then((_connection) {
       print('Connected to the device');
@@ -175,114 +183,152 @@ class _ChatPage extends State<ChatPage> {
   }
 
   final double _value = 90.0;
+
   @override
   Widget build(BuildContext context) {
     print("timer ${timerCount.toString()}");
-    final List<Row> list = chartData.map((_liveData) {
-      return Row(
-        children: <Widget>[
-          Text(_liveData.time.toString()+" sec ->"),
-          Container(
-            child: Text(
+    final List<Row> list = chartData
+        .map((_liveData) {
+          return Row(
+            children: <Widget>[
+              Text(_liveData.time.toString() + " sec ->"),
+              Container(
+                child: Text(
                     (text) {
-                  return text == '/shrug' ? '¯\\_(ツ)_/¯' : text;
-                }(_liveData.speed.toString().trim()),
-                style: const TextStyle(color: Colors.white)),
-            padding: const EdgeInsets.all(12.0),
-            margin: const EdgeInsets.only(bottom: 8.0, left: 8.0, right: 8.0),
-            width: 222.0,
-            decoration: BoxDecoration(
-                color:
-                _liveData.time == clientID ? Colors.greenAccent : Colors.grey,
-                borderRadius: BorderRadius.circular(7.0)),
-          ),
-        ],
-        mainAxisAlignment: _liveData.time == clientID
-            ? MainAxisAlignment.end
-            : MainAxisAlignment.start,
-      );
-    }).toList().reversed.toList();
-
-    return Scaffold(
-      appBar: AppBar(
-          title: (isConnecting
-              ? Text('Connecting chat to ' + widget.server.name + '...')
-              : isConnected
-              ? Text('Live chart with ' + widget.server.name)
-              : Text('Chat log with ' + widget.server.name))),
-      body: SafeArea(
-        child: Column(
-          // mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              height: 200,
-              child: SfCartesianChart(
-                legend: Legend(isVisible: true),
-                series: [
-                  LineSeries<LiveData, int>(
-                    onRendererCreated: (ChartSeriesController controller) {
-                      _chartSeriesController = controller;
-                    },
-                    dataSource: chartData,
-                    legendItemText: 'CO2',
-                    xValueMapper: (LiveData data, _)=> data.time,
-                    yValueMapper: (LiveData data, _)=> data.speed,
-                  )
-                ],
-                primaryXAxis: NumericAxis(
-                  majorGridLines: MajorGridLines(width: 1),
-                  edgeLabelPlacement: EdgeLabelPlacement.none,
-                  interval: 5,
-                  title: AxisTitle(text: 'Time(seconds)'),
-                ),
-                primaryYAxis: NumericAxis(
-                  majorGridLines: MajorGridLines(width: 1),
-                  // edgeLabelPlacement: EdgeLabelPlacement,
-                  interval: 6,
-                  title: AxisTitle(text: 'density(?/M^2)'),
-                ),
+                      return text == '/shrug' ? '¯\\_(ツ)_/¯' : text;
+                    }(_liveData.speed.toString().trim()),
+                    style: const TextStyle(color: Colors.white)),
+                padding: const EdgeInsets.all(12.0),
+                margin:
+                    const EdgeInsets.only(bottom: 8.0, left: 8.0, right: 8.0),
+                width: 222.0,
+                decoration: BoxDecoration(
+                    color: _liveData.time == clientID
+                        ? Colors.greenAccent
+                        : Colors.grey,
+                    borderRadius: BorderRadius.circular(7.0)),
               ),
-            ),
-            Expanded(
-              child: ListView(
-                  padding: const EdgeInsets.all(12.0),
-                  controller: listScrollController,
-                  children: list),
-            ),
-            // Row(
-            //   children: <Widget>[
-            //     Flexible(
-            //       child: Container(
-            //         margin: const EdgeInsets.only(left: 16.0),
-            //         child: TextField(
-            //           style: const TextStyle(fontSize: 15.0),
-            //           controller: textEditingController,
-            //           decoration: InputDecoration.collapsed(
-            //             hintText: isConnecting
-            //                 ? 'Wait until connected...'
-            //                 : isConnected
-            //                     ? 'Type your message...'
-            //                     : 'Chat got disconnected',
-            //             hintStyle: const TextStyle(color: Colors.grey),
-            //           ),
-            //           enabled: isConnected,
-            //         ),
-            //       ),
-            //     ),
-            //     Container(
-            //       margin: const EdgeInsets.all(8.0),
-            //       child: IconButton(
-            //           icon: const Icon(Icons.send),
-            //           onPressed: isConnected
-            //               ? () => _sendMessage(textEditingController.text)
-            //               : null),
-            //     ),
-            //   ],
-            // )
-          ],
-        ),
+            ],
+            mainAxisAlignment: _liveData.time == clientID
+                ? MainAxisAlignment.end
+                : MainAxisAlignment.start,
+          );
+        })
+        .toList()
+        .reversed
+        .toList();
+    return Scaffold(
+      body: Column(
+        children: [
+          Expanded(
+            flex: 2,
+              child: Stack(
+            children: [
+              Center(child: ExtendedImage.asset('assets/images/body.png')),
+              testValue < neckAlarm?
+                          Positioned(
+                              // neck
+                              width: 360,
+                              height: 280,
+                              child: Opacity(
+                                opacity: 0.7,
+                                child: Center(
+                                    child: Container(
+                                  color: Colors.red,
+                                  width: 25,
+                                  height: 20,
+                                )),
+                              ))
+                      :Container(width: 0, height: 0,),
+              // Positioned(
+              //     //waist
+              //     width: 360,
+              //     height: 450,
+              //     child: Opacity(
+              //       opacity: 0.7,
+              //       child: Center(
+              //           child: Container(
+              //         color: Colors.red,
+              //         width: 50,
+              //         height: 30,
+              //       )),
+              //     )),
+              // Positioned(
+              //     // head <= 생각해보니 이게 그냥 목이네요...
+              //     // neck
+              //     width: 360,
+              //     height: 200,
+              //     child: Opacity(
+              //       opacity: 0.7,
+              //       child: Center(
+              //           child: Container(
+              //         color: Colors.red,
+              //         width: 25,
+              //         height: 20,
+              //       )),
+              //     )),
+            ],
+
+          )),
+          Expanded(
+            flex: 1,
+            child: ListView(
+                padding: const EdgeInsets.all(12.0),
+                controller: listScrollController,
+                children: list),
+          )        ],
       ),
     );
+    // return Scaffold(
+    //   appBar: AppBar(
+    //       title: (isConnecting
+    //           ? Text('Connecting chat to ' + widget.server.name + '...')
+    //           : isConnected
+    //           ? Text('Live chart with ' + widget.server.name)
+    //           : Text('Chat log with ' + widget.server.name))),
+    //   body: SafeArea(
+    //     child: Column(
+    //       // mainAxisAlignment: MainAxisAlignment.center,
+    //       children: [
+    //         Container(
+    //           height: 200,
+    //           child: SfCartesianChart(
+    //             legend: Legend(isVisible: true),
+    //             series: [
+    //               LineSeries<LiveData, int>(
+    //                 onRendererCreated: (ChartSeriesController controller) {
+    //                   _chartSeriesController = controller;
+    //                 },
+    //                 dataSource: chartData,
+    //                 legendItemText: 'CO2',
+    //                 xValueMapper: (LiveData data, _)=> data.time,
+    //                 yValueMapper: (LiveData data, _)=> data.speed,
+    //               )
+    //             ],
+    //             primaryXAxis: NumericAxis(
+    //               majorGridLines: MajorGridLines(width: 1),
+    //               edgeLabelPlacement: EdgeLabelPlacement.none,
+    //               interval: 5,
+    //               title: AxisTitle(text: 'Time(seconds)'),
+    //             ),
+    //             primaryYAxis: NumericAxis(
+    //               majorGridLines: MajorGridLines(width: 1),
+    //               // edgeLabelPlacement: EdgeLabelPlacement,
+    //               interval: 6,
+    //               title: AxisTitle(text: 'density(?/M^2)'),
+    //             ),
+    //           ),
+    //         ),
+    //         Expanded(
+    //           child: ListView(
+    //               padding: const EdgeInsets.all(12.0),
+    //               controller: listScrollController,
+    //               children: list),
+    //         ),
+    //       ],
+    //     ),
+    //   ),
+    // );
   }
 
   void _onDataReceived(Uint8List data) {
@@ -312,8 +358,13 @@ class _ChatPage extends State<ChatPage> {
 
     // Create message if there is new line character
     String dataString = String.fromCharCodes(buffer);
-
+    testValue = int.parse(dataString);
     // here to add element to chartData
+
+    // if(testValue < neckAlarm) {
+      // service.showNotification(id: 0, title: 'Notification Title', body: 'Some body');
+
+    // }
 
     int index = buffer.indexOf(13);
     if (~index != 0) {
@@ -323,24 +374,29 @@ class _ChatPage extends State<ChatPage> {
             timerCount,
             backspacesCounter > 0
                 ? int.parse(_messageBuffer.substring(
-                0, _messageBuffer.length - backspacesCounter))
+                    0, _messageBuffer.length - backspacesCounter))
                 : int.parse(_messageBuffer + dataString.substring(0, index)),
           ),
         );
         _messageBuffer = dataString.substring(index);
       });
-
     } else {
       _messageBuffer = (backspacesCounter > 0
           ? int.parse(_messageBuffer.substring(
-          0, _messageBuffer.length - backspacesCounter))
+              0, _messageBuffer.length - backspacesCounter))
           : (_messageBuffer + dataString));
     }
+    print(testValue);
   }
+  void listenToNotification() => service.onNotificationClick.stream.listen(onNotificationListener);
+  void onNotificationListener(String payload) {
+    if(payload != null && payload.isNotEmpty) {
+      print('payload $payload');
 
+      // Navigator.push(context, MaterialPageRoute(builder: (context)=>SecondScreen(payload: payload)));
+    }
+  }
 }
-
-
 
 class LiveData {
   final int time;

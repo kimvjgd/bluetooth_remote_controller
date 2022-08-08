@@ -3,10 +3,21 @@ import 'package:dongpakka_bluetooth/chat_page.dart';
 import 'package:dongpakka_bluetooth/live_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 void main() {
   runApp(MyApp());
 }
+
+Future<void> permission() async {
+  Map<Permission, PermissionStatus> statuses = await [
+    Permission.bluetooth,
+    Permission.bluetoothConnect,
+    Permission.bluetoothScan,
+  ].request();
+
+}
+
 
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
@@ -19,6 +30,8 @@ class MyApp extends StatelessWidget {
       home: FutureBuilder(
         future: FlutterBluetoothSerial.instance.requestEnable(),
         builder: (context, future) {
+          permission();
+
           if (future.connectionState == ConnectionState.waiting) {
             return const Scaffold(
               body: SizedBox(
@@ -39,6 +52,7 @@ class MyApp extends StatelessWidget {
 
           }
         },
+
         // child: MyHomePage(title: 'Flutter Demo Home Page'),
       ),
     );
@@ -55,7 +69,9 @@ class Home extends StatelessWidget {
             title: const Text('Connection'),
           ),
           body: SelectBondedDevicePage(
-            onChatPage: (device1) {
+            onChatPage: (device1) async {
+              // await permission();
+
               BluetoothDevice device = device1;
               Navigator.push(
                 context,
